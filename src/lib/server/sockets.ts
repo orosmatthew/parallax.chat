@@ -1,6 +1,9 @@
 import { Server as SocketServer } from 'socket.io';
 import portfinder from 'portfinder';
 import { dev } from '$app/environment';
+import { db } from './prisma';
+
+let io: SocketServer | undefined;
 
 export async function startSocketServer(): Promise<string> {
 	let socketPort: number;
@@ -24,7 +27,10 @@ export async function startSocketServer(): Promise<string> {
 		}
 	})();
 
-	const io = new SocketServer(socketPort, { cors: { origin: '*' } });
+	if (io) {
+		io.close();
+	}
+	io = new SocketServer(socketPort, { cors: { origin: '*' } });
 	console.log(`Websocket Server listening on ${socketUrl}`);
 
 	handleSocketsServer(io);
@@ -33,7 +39,10 @@ export async function startSocketServer(): Promise<string> {
 }
 
 function handleSocketsServer(io: SocketServer) {
-	io.on('connection', () => {
-		console.log('New Connection!');
+	io.on('connection', (socket) => {
+		socket.on('message', async (data: { createdAt: Date; value: string }) => {
+			const message = await db.message.create({ data: { value: data.value } });
+			io.emit('message', { createdAt: message.createdAt, value: data.value });
+		});
 	});
 }

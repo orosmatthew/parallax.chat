@@ -1,9 +1,10 @@
-<script context="module">
-	export const socketUrl = writable('');
+<script context="module" lang="ts">
+	export const socketUrl = writable<string>();
 </script>
 
 <script lang="ts">
 	import 'bootstrap/dist/css/bootstrap.min.css';
+	import 'bootstrap-icons/font/bootstrap-icons.min.css';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import type { LayoutData } from './$types';
